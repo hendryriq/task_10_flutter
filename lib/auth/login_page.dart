@@ -1,6 +1,10 @@
+import 'dart:convert';
+
 import 'package:flutter/material.dart';
+import 'package:fluttertoast/fluttertoast.dart';
 import 'package:task_10/auth/signup_page.dart';
 import 'package:task_10/home_page.dart';
+import 'package:http/http.dart' as http;
 
 class LoginPage extends StatefulWidget {
   const LoginPage({super.key});
@@ -10,6 +14,43 @@ class LoginPage extends StatefulWidget {
 }
 
 class _LoginPageState extends State<LoginPage> {
+  TextEditingController email = TextEditingController();
+  TextEditingController password = TextEditingController();
+
+
+  Future login() async {
+    var url = Uri.http("192.168.0.158", "/task_10/login.php");
+    var response = await http.post(url, body: {
+      "email": email.text,
+      "password": password.text,
+    });
+
+    var data = json.decode(response.body);
+
+    if (data == "Success") {
+      Fluttertoast.showToast(
+        backgroundColor: Colors.green,
+        textColor: Colors.white,
+        msg: 'Login Successful',
+        toastLength: Toast.LENGTH_SHORT,
+      );
+      Navigator.pushReplacement(
+        context,
+        MaterialPageRoute(
+          builder: (context) => HomePage(),
+        ),
+      );
+      // Navigate to another screen or perform any actions upon successful login
+    } else {
+      Fluttertoast.showToast(
+        backgroundColor: Colors.red,
+        textColor: Colors.white,
+        msg: 'Login Failed: $data', // Display the error message
+        toastLength: Toast.LENGTH_SHORT,
+      );
+
+    }
+  }
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -26,6 +67,7 @@ class _LoginPageState extends State<LoginPage> {
                 child: SizedBox(
                   height: 55,
                   child: TextFormField(
+                    controller: email,
                     maxLines: 1,
                     keyboardType: TextInputType.emailAddress,
                     decoration: InputDecoration(
@@ -45,6 +87,7 @@ class _LoginPageState extends State<LoginPage> {
                 child: SizedBox(
                   height: 55,
                   child: TextFormField(
+                    controller: password,
                     maxLines: 1,
                     keyboardType: TextInputType.emailAddress,
                     decoration: InputDecoration(
@@ -70,7 +113,7 @@ class _LoginPageState extends State<LoginPage> {
                   shape: RoundedRectangleBorder(
                       borderRadius: BorderRadius.circular(30.0)),
                   onPressed: () {
-                    Navigator.push(context, MaterialPageRoute(builder: (context) => HomePage()));
+                    login();
                   },
                   child: const Text("Login"),
                 ),

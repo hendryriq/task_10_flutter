@@ -1,14 +1,66 @@
+import 'dart:convert';
 import 'package:flutter/material.dart';
+import 'package:fluttertoast/fluttertoast.dart';
 import 'package:task_10/auth/login_page.dart';
+import 'package:http/http.dart' as http;
 
 class SignUpPage extends StatefulWidget {
-  const SignUpPage({super.key});
+  final formKey = GlobalKey<FormState>();
+  SignUpPage({Key? key}) : super(key: key);
 
   @override
   State<SignUpPage> createState() => _SignUpPageState();
 }
 
 class _SignUpPageState extends State<SignUpPage> {
+  TextEditingController email = TextEditingController();
+  TextEditingController name = TextEditingController();
+  TextEditingController password = TextEditingController();
+
+  Future register() async {
+    var url = Uri.http("192.168.0.158", "/task_10/register.php");
+    var response = await http.post(url, body: {
+      "email": email.text.toString(),
+      "name": name.text.toString(),
+      "password": password.text.toString(),
+    });
+
+    try {
+      var data = json.decode(response.body);
+
+      if (data == "Error") {
+        Fluttertoast.showToast(
+          backgroundColor: Colors.orange,
+          textColor: Colors.white,
+          msg: 'User already exists!',
+          toastLength: Toast.LENGTH_SHORT,
+        );
+      } else {
+        Fluttertoast.showToast(
+          backgroundColor: Colors.green,
+          textColor: Colors.white,
+          msg: 'Registration Successful',
+          toastLength: Toast.LENGTH_SHORT,
+        );
+        Navigator.push(
+          context,
+          MaterialPageRoute(
+            builder: (context) => LoginPage(),
+          ),
+        );
+      }
+    } catch (e) {
+      print("Error decoding JSON: $e");
+      Fluttertoast.showToast(
+        backgroundColor: Colors.red,
+        textColor: Colors.white,
+        msg: 'Error decoding server response',
+        toastLength: Toast.LENGTH_SHORT,
+      );
+    }
+  }
+
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -24,8 +76,9 @@ class _SignUpPageState extends State<SignUpPage> {
                   child: SizedBox(
                     height: 55,
                     child: TextFormField(
+                      controller: email,
                       maxLines: 1,
-                      keyboardType: TextInputType.text,
+                      keyboardType: TextInputType.emailAddress,
                       decoration: InputDecoration(
                         border: OutlineInputBorder(
                           borderSide: BorderSide.none,
@@ -43,8 +96,8 @@ class _SignUpPageState extends State<SignUpPage> {
                   child: SizedBox(
                     height: 55,
                     child: TextFormField(
+                      controller: name,
                       maxLines: 1,
-                      keyboardType: TextInputType.emailAddress,
                       decoration: InputDecoration(
                         border: OutlineInputBorder(
                           borderSide: BorderSide.none,
@@ -62,6 +115,8 @@ class _SignUpPageState extends State<SignUpPage> {
                   child: SizedBox(
                     height: 55,
                     child: TextFormField(
+                      obscureText: true,
+                      controller: password,
                       maxLines: 1,
                       keyboardType: TextInputType.emailAddress,
                       decoration: InputDecoration(
@@ -86,7 +141,9 @@ class _SignUpPageState extends State<SignUpPage> {
                     elevation: 5,
                     shape: RoundedRectangleBorder(
                         borderRadius: BorderRadius.circular(30.0)),
-                    onPressed: () {},
+                    onPressed: () {
+                      register();
+                    },
                     child: const Text("Sign Up"),
                   ),
                 ),
