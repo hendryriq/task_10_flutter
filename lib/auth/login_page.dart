@@ -1,24 +1,25 @@
 import 'dart:convert';
-
 import 'package:flutter/material.dart';
 import 'package:fluttertoast/fluttertoast.dart';
+import 'package:shared_preferences/shared_preferences.dart';
+import 'package:http/http.dart' as http;
 import 'package:task_10/auth/signup_page.dart';
 import 'package:task_10/home_page.dart';
-import 'package:http/http.dart' as http;
 
 class LoginPage extends StatefulWidget {
-  const LoginPage({super.key});
+  const LoginPage({Key? key}) : super(key: key);
 
   @override
   State<LoginPage> createState() => _LoginPageState();
 }
 
+
+
 class _LoginPageState extends State<LoginPage> {
   TextEditingController email = TextEditingController();
   TextEditingController password = TextEditingController();
 
-
-  Future login() async {
+  Future<void> login() async {
     var url = Uri.http("192.168.0.158", "/task_10/login.php");
     var response = await http.post(url, body: {
       "email": email.text,
@@ -34,23 +35,30 @@ class _LoginPageState extends State<LoginPage> {
         msg: 'Login Successful',
         toastLength: Toast.LENGTH_SHORT,
       );
+
+      // Save login status to shared preferences
+      SharedPreferences prefs = await SharedPreferences.getInstance();
+      prefs.setBool('loggedIn', true);
+
       Navigator.pushReplacement(
         context,
         MaterialPageRoute(
           builder: (context) => HomePage(),
         ),
       );
-      // Navigate to another screen or perform any actions upon successful login
     } else {
       Fluttertoast.showToast(
         backgroundColor: Colors.red,
         textColor: Colors.white,
-        msg: 'Login Failed: $data', // Display the error message
+        msg: 'Login Failed: $data',
         toastLength: Toast.LENGTH_SHORT,
       );
-
     }
   }
+
+
+
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -87,6 +95,7 @@ class _LoginPageState extends State<LoginPage> {
                 child: SizedBox(
                   height: 55,
                   child: TextFormField(
+                    obscureText: true,
                     controller: password,
                     maxLines: 1,
                     keyboardType: TextInputType.emailAddress,
@@ -111,7 +120,8 @@ class _LoginPageState extends State<LoginPage> {
                   height: 55,
                   elevation: 5,
                   shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(30.0)),
+                    borderRadius: BorderRadius.circular(30.0),
+                  ),
                   onPressed: () {
                     login();
                   },
@@ -124,11 +134,12 @@ class _LoginPageState extends State<LoginPage> {
                 child: Row(
                   mainAxisAlignment: MainAxisAlignment.center,
                   children: [
-                    Text("Dont have an account?"),
+                    Text("Don't have an account?"),
                     const SizedBox(width: 6),
                     GestureDetector(
                       onTap: () {
-                        Navigator.push(context, MaterialPageRoute(builder: (_) => SignUpPage()));
+                        Navigator.push(context,
+                            MaterialPageRoute(builder: (_) => SignUpPage()));
                       },
                       child: Text(
                         "Sign Up",

@@ -1,35 +1,58 @@
+
+import 'dart:io';
+
 import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
+import 'package:image_picker/image_picker.dart';
 import 'package:task_10/home_page.dart';
 
-class AddDataPage extends StatefulWidget {
-  const AddDataPage({super.key});
+class AddPage extends StatefulWidget {
+  const AddPage({super.key});
 
   @override
-  State<AddDataPage> createState() => _AddDataPageState();
+  State<AddPage> createState() => _AddPageState();
 }
 
-class _AddDataPageState extends State<AddDataPage> {
+class _AddPageState extends State<AddPage> {
   final formKey = GlobalKey<FormState>();
   TextEditingController nisn = TextEditingController();
   TextEditingController nama = TextEditingController();
   TextEditingController alamat = TextEditingController();
+  File? imageFile;
 
-  Future _simpan() async{
-    final response = await http.post(
-      Uri.parse('http://192.168.0.158/task_10/create.php'),
-      body: {
-        "nisn" : nisn.text,
-        "nama" : nama.text,
-        "alamat" : alamat.text,
-      }
-    );
-    if(response.statusCode == 200){
-      return true;
+  final ImagePicker _picker = ImagePicker();
+
+  Future pickImage() async {
+    final XFile? pickedFile = await _picker.pickImage(source: ImageSource.gallery);
+
+    if (pickedFile != null) {
+      setState(() {
+        imageFile = File(pickedFile.path);
+      });
     }
-    return false;
   }
 
+  Future _simpan() async {
+    var uri = Uri.parse('http://192.168.0.158/task_10/create.php');
+    var request = http.MultipartRequest('POST', uri)
+      ..fields['nisn'] = nisn.text
+      ..fields['nama'] = nama.text
+      ..fields['alamat'] = alamat.text;
+
+    if (imageFile != null) {
+      request.files.add(await http.MultipartFile.fromPath('gambar', imageFile!.path));
+    }
+
+    var response = await request.send();
+
+    if (response.statusCode == 200) {
+      // Success
+      return true;
+    } else {
+      // Error
+      return false;
+    }
+  }
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -86,6 +109,12 @@ class _AddDataPageState extends State<AddDataPage> {
                       return "Alamat tidak boleh kosong";
                     }
                   },
+                ),
+                SizedBox(height: 15),
+                // Tombol untuk memilih gambar
+                ElevatedButton(
+                  onPressed: pickImage,
+                  child: Text("Pilih Gambar"),
                 ),
                 SizedBox(height: 15),
                 MaterialButton(

@@ -13,12 +13,14 @@ class SiswaModel {
   final String nis;
   final String nama;
   final String alamat;
+  final String gambar;
 
   SiswaModel({
     required this.id,
     required this.nis,
     required this.nama,
     required this.alamat,
+    required this.gambar
   });
 
   factory SiswaModel.fromJson(Map<String, dynamic> json) => SiswaModel(
@@ -26,6 +28,7 @@ class SiswaModel {
     nis: json["nis"],
     nama: json["nama"],
     alamat: json["alamat"],
+    gambar: json["gambar"]
   );
 
   Map<String, dynamic> toJson() => {
@@ -33,5 +36,6 @@ class SiswaModel {
     "nis": nis,
     "nama": nama,
     "alamat": alamat,
+    "gambar": gambar,
   };
 }
